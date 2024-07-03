@@ -8,7 +8,7 @@ spark = SparkSession.builder \
         .enableHiveSupport() \
         .getOrCreate()
 
-# Initialize SparkSession with Hive support
+## Initialize SparkSession with Hive support
 # Replace with your Hive warehouse directory
 
 
