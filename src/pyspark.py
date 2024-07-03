@@ -6,7 +6,7 @@ from pyspark.sql.functions import col, regexp_replace, upper
 
 # Create spark session with hive enabled
 spark = SparkSession.builder \
-        .appName("BankMarketing") \
+        .appName("bank-full") \
         .config("spark.sql.warehouse.dir", "/warehouse/tablespace/external/hive") \
         .enableHiveSupport() \
         .getOrCreate()
@@ -22,7 +22,7 @@ postgres_properties = {
 }
 
 try:
-    postgres_table_name = "bank"
+    postgres_table_name = "bank-full"
 
     # read data from postgres table into dataframe :
     df_postgres = spark.read.jdbc(url=postgres_url, table=postgres_table_name, properties=postgres_properties)
@@ -33,16 +33,16 @@ try:
     
 
     # change job column into upper case
-    df_upper = df_postgres.withColumn("job_upper", upper(df_postgres['job']))
-    df_upper.show(5)
+    # df_postgres = df_postgres.withColumn("job_upper", upper(df_postgres['job']))
+    # df_upper.show(5)
 
     ## 2. load df_postgres to hive table
     # Create database
     spark.sql("CREATE DATABASE IF NOT EXISTS tekle")
 
     # Hive database and table names
-    hive_database_name = "tekle"
-    hive_table_name = "bank_marketing"
+    hive_database_name = "sdata124"
+    hive_table_name = "bank-full"
 
     # read and show the existing_data in hive table
     existing_hive_data = spark.read.table("{}.{}".format(hive_database_name, hive_table_name))
@@ -56,7 +56,7 @@ try:
     Essentially, it finds rows in df_upper that are not present in existing_hive_data based 
     on id
     '''
-    incremental_data_df = df_upper.join(existing_hive_data.select("id"), df_upper["id"] == existing_hive_data["id"], "left_anti")
+    incremental_data_df = df_postgres.join(existing_hive_data.select("id"), df_postgres["id"] == existing_hive_data["id"], "left_anti")
     print('------------------Incremental data-----------------------')
     incremental_data_df.show()
 
